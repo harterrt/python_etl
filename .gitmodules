@@ -1,0 +1,3 @@
+[submodule "python_etl/betl"]
+	path = python_etl/betl
+	url = https://github.com/harterrt/betl.git
