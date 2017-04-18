@@ -15,3 +15,9 @@ def spark_context(request):
     request.addfinalizer(lambda: spark.stop())
 
     return sc
+
+def row_to_dict(row):
+    """Convert pyspark.Row to dict for easier unordered comparison"""
+    return {key: row[key] for key in row.__fields__}
+
+

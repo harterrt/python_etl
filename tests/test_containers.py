@@ -5,12 +5,14 @@ from python_etl.testpilot.containers import transform_pings
 from utils import *
 
 
-def create_ping(payload):
-    return {'payload': {
-        'test': '@testpilot-containers',
-        'other-ignored-field': 'who cares',
-        'payload': payload
-    }}
+def create_ping_rdd(sc, payload):
+    return sc.parallelize([
+        {'payload': {
+            'test': '@testpilot-containers',
+            'other-ignored-field': 'who cares',
+            'payload': payload
+        }}
+    ])
 
 
 def create_row(overrides):
@@ -18,25 +20,45 @@ def create_row(overrides):
             "event", "hiddenContainersCount", "shownContainersCount",
             "totalContainersCount", "totalContainerTabsCount",
             "totalNonContainerTabsCount", "test"]
-    
-    return Row(**{key: overrides.get(key, None) for key in keys})
 
-example_payloads = [
-    # Open a container ping
-    {
+    overrides['test'] = '@testpilot-containers'
+    
+    return {key: overrides.get(key, None) for key in keys}
+
+def test_open_container_ping(spark_context):
+    input_payload = {
         'uuid': 'a',
         'userContextId': 10,
         'clickedContainerTabCount': 20,
         'event': 'open-tab',
         'eventSource': 'tab-bar'
-    },
-    # Edit containers ping
-    {
+    }
+
+    result_payload = input_payload
+    result_payload['userContextId'] = '10'
+
+    actual = transform_pings(
+        SQLContext(spark_context),
+        create_ping_rdd(spark_context, input_payload)
+    ).take(1)[0]
+
+    assert row_to_dict(actual) == create_row(result_payload)
+
+def test_edit_container_ping(spark_context):
+    input_payload = {
         'uuid': 'b',
         'event': 'edit-containers'
-    },
-    # Hide container tabs ping
-    {
+    }
+
+    actual = transform_pings(
+        SQLContext(spark_context),
+        create_ping_rdd(spark_context, input_payload)
+    ).take(1)[0]
+
+    assert row_to_dict(actual) == create_row(input_payload)
+
+def test_hide_container_ping(spark_context):
+    input_payload = {
         'uuid': 'a',
         'userContextId': 'firefox-default',
         'clickedContainerTabCount': 5,
@@ -45,18 +67,13 @@ example_payloads = [
         'shownContainersCount': 3,
         'totalContainersCount': 5,
     }
-]
 
-@pytest.fixture
-def simple_ping_rdd(spark_context):
-    # See the following document for a description of the possible ping types:
-    # https://github.com/mozilla/testpilot-containers/blob/master/docs/metrics.md
-    return spark_context.parallelize(map(create_ping, example_payloads))
+    actual = transform_pings(
+        SQLContext(spark_context),
+        create_ping_rdd(spark_context, input_payload)
+    ).take(1)[0]
 
-# Tests
-def test_simple_transform(simple_ping_rdd, spark_context):
-    actual = transform_pings(SQLContext(spark_context), simple_ping_rdd).collect()
-    expected = map(create_row, example_payloads)
+    print actual.__fields__
 
-    assert all(map(lambda key: actual[key] == expected[key], expected.keys()))
+    assert row_to_dict(actual) == create_row(input_payload)
 
