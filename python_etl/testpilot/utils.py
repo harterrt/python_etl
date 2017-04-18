@@ -1,4 +1,4 @@
-from datetime import *
+from datetime import date, timedelta
 from moztelemetry.dataset import Dataset
 
 
@@ -8,10 +8,10 @@ def testpilot_etl_boilerplate(transform_func, s3_path):
             submission_date = (date.today() - timedelta(1)).strftime("%Y%m%d")
 
         pings = Dataset.from_source("telemetry")\
-                        .where(docType="testpilottest")\
-                        .where(submissionDate=submission_date)\
-                        .where(appName="Firefox")\
-                        .records(sc)
+            .where(docType="testpilottest")\
+            .where(submissionDate=submission_date)\
+            .where(appName="Firefox")\
+            .records(sc)
 
         transformed_pings = transform_func(sqlContext, pings)
 
@@ -21,6 +21,5 @@ def testpilot_etl_boilerplate(transform_func, s3_path):
             transformed_pings.repartition(1).write.mode('overwrite').parquet(path)
 
         return transformed_pings
-
 
     return etl_job

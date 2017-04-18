@@ -1,8 +1,6 @@
-import pytest
-import json
-from pyspark.sql import SQLContext, Row
+from pyspark.sql import SQLContext
 from python_etl.testpilot.containers import transform_pings
-from utils import *
+from utils import row_to_dict, spark_context
 
 
 def create_ping_rdd(sc, payload):
@@ -22,8 +20,9 @@ def create_row(overrides):
             "totalNonContainerTabsCount", "test"]
 
     overrides['test'] = '@testpilot-containers'
-    
+
     return {key: overrides.get(key, None) for key in keys}
+
 
 def test_open_container_ping(spark_context):
     input_payload = {
@@ -44,6 +43,7 @@ def test_open_container_ping(spark_context):
 
     assert row_to_dict(actual) == create_row(result_payload)
 
+
 def test_edit_container_ping(spark_context):
     input_payload = {
         'uuid': 'b',
@@ -56,6 +56,7 @@ def test_edit_container_ping(spark_context):
     ).take(1)[0]
 
     assert row_to_dict(actual) == create_row(input_payload)
+
 
 def test_hide_container_ping(spark_context):
     input_payload = {
@@ -73,7 +74,4 @@ def test_hide_container_ping(spark_context):
         create_ping_rdd(spark_context, input_payload)
     ).take(1)[0]
 
-    print actual.__fields__
-
     assert row_to_dict(actual) == create_row(input_payload)
-

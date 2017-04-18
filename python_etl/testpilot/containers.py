@@ -1,7 +1,7 @@
-from python_etl.basic_etl import *
+from python_etl.basic_etl import convert_pings, DataFrameConfig
 from utils import testpilot_etl_boilerplate
 
-from pyspark.sql.types import *
+from pyspark.sql.types import StringType, LongType
 
 
 def transform_pings(sqlContext, pings):
@@ -20,9 +20,9 @@ def transform_pings(sqlContext, pings):
             ("totalContainerTabsCount", "payload/payload/totalContainerTabsCount", None, LongType()),
             ("totalNonContainerTabsCount", "payload/payload/totalNonContainerTabsCount", None, LongType()),
             ("test", "payload/test", None, StringType()),
-        ],
-        lambda ping: ping['payload/test'] == "@testpilot-containers")
+        ], lambda ping: ping['payload/test'] == "@testpilot-containers")
     )
+
 
 etl_job = testpilot_etl_boilerplate(
     transform_pings,

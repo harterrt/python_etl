@@ -1,9 +1,10 @@
-from pyspark.sql.types import *
+from pyspark.sql.types import StructType, StructField
 from collections import namedtuple
 from moztelemetry import get_pings_properties
 
 ColumnConfig = namedtuple('ColumnConfig',
                           ['name', 'path', 'cleaning_func', 'struct_type'])
+
 
 class DataFrameConfig:
     def __init__(self, col_configs, ping_filter):
@@ -25,6 +26,7 @@ def convert_pings(sqlContext, pings, data_frame_config):
         .filter(data_frame_config.ping_filter)
 
     return convert_rdd(sqlContext, filtered_pings, data_frame_config)
+
 
 def convert_rdd(sqlContext, raw_data, data_frame_config):
     """Performs basic data pipelining over an RDD, returning a DataFrame
@@ -48,5 +50,5 @@ def convert_rdd(sqlContext, raw_data, data_frame_config):
 
     return sqlContext.createDataFrame(
         raw_data.map(ping_to_row),
-        schema = data_frame_config.toStructType()
+        schema=data_frame_config.toStructType()
     )
