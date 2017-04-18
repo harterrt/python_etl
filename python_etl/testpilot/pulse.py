@@ -21,7 +21,9 @@ class Request:
     }
 
     StructType = StructType([
-        StructField(key, field_types[key][1], True) for key in field_types
+        # For some reason, field_types needs to be sorted. Use 
+        # PYTHONHASHSEED = 3201792604 to reproduce failure
+        StructField(key, field_types[key][1], True) for key in sorted(field_types)
     ])
 
     def __init__(self, request_dict):
@@ -34,12 +36,9 @@ class Request:
 def transform_pings(sqlContext, pings):
     def requests_to_rows(requests):
         out =  {k: Request(v).Row for k, v in requests.items()}
-        print out
         return out
 
-    print 'Here 1'
     RequestsType = MapType(StringType(), Request.StructType)
-    print 'Here 2'
 
     return convert_pings(
         sqlContext,

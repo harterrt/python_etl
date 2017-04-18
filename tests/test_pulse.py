@@ -15,9 +15,7 @@ def simple_rdd(spark_context):
 
 # Tests
 def test_simple_transform(simple_rdd, spark_context):
-    print 'Test 1'
     actual = transform_pings(SQLContext(spark_context), simple_rdd).take(1)[0]
-    print 'Test 2'
 
     empty_request_keys = ["sub_frame", "stylesheet", "script", "image",
         "object", "xmlhttprequest", "xbl", "xslt", "ping", "beacon", "xml_dtd",
@@ -43,7 +41,6 @@ def test_simple_transform(simple_rdd, spark_context):
     )
 
 
-    print 'Test 3'
     expected = {
         'method': None,
         'id': u'19e0cf07-8145-4666-938d-811397db85dc',
