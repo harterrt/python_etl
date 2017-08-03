@@ -38,4 +38,4 @@ def etl_job(sc, sqlContext, **kwargs):
     return shield_etl_boilerplate(
         transform_shield_pings,
         's3n://telemetry-parquet/harter/privacy_prefs_shield/v1'
-    )
+    )(sc, sqlContext)
